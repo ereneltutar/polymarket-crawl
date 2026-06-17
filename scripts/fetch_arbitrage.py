@@ -39,7 +39,7 @@ DAYS_AHEAD = 14          # deadline'i bugunden en fazla kac gun sonra olan event
 MIN_EDGE_PCT = 0.5       # bu yuzdenin altindaki "firsatlari" gosterme (gurultu filtresi)
 MIN_LIQUIDITY_USD = 50   # her bacakta en az bu kadar likidite olmali (cok ince kitaplari ele)
 PAGE_LIMIT = 500
-MAX_PAGES = 20           # guvenlik siniri
+MAX_PAGES = 60           # guvenlik siniri
 REQUEST_TIMEOUT = 30
 # ----------------------------------------------------------------------------
 
@@ -47,7 +47,14 @@ OUTPUT_PATH = Path(__file__).resolve().parent.parent / "docs" / "results.json"
 
 
 def fetch_all_events() -> list:
-    """Gamma API /events endpoint'inden aktif ve kapanmamis tum event'leri sayfalayarak ceker."""
+    """Gamma API /events endpoint'inden aktif ve kapanmamis tum event'leri sayfalayarak ceker.
+
+    Not: API'nin sayfa basina dondurdugu gercek eleman sayisi, "limit" ile
+    istenenden daha az olabilir (sunucu kendi ust siniri uygulayabilir).
+    Bu yuzden "bos sayfa gelene kadar devam et, offset'i gercek alinan
+    miktar kadar ilerlet" mantigini kullaniyoruz; "alinan miktar < istenen
+    limit" durumunu "veri bitti" sanmiyoruz.
+    """
     events = []
     offset = 0
     for _ in range(MAX_PAGES):
@@ -63,9 +70,7 @@ def fetch_all_events() -> list:
         if not isinstance(batch, list) or not batch:
             break
         events.extend(batch)
-        if len(batch) < PAGE_LIMIT:
-            break
-        offset += PAGE_LIMIT
+        offset += len(batch)
         time.sleep(0.2)  # API'ye nazik davran
     return events
 
