@@ -1,7 +1,144 @@
 {
-  "generated_at": "2026-06-17T11:48:43.486752+00:00",
+  "generated_at": "2026-06-17T11:54:33.733275+00:00",
   "days_ahead_filter": 14,
   "min_edge_pct_filter": 0.5,
-  "scanned_events": 100,
-  "opportunities": []
+  "scanned_events": 6000,
+  "opportunities": [
+    {
+      "event_title": "Highest temperature in Helsinki on June 17?",
+      "slug": "highest-temperature-in-helsinki-on-june-17-2026",
+      "url": "https://polymarket.com/event/highest-temperature-in-helsinki-on-june-17-2026",
+      "end_date": "2026-06-17T12:00:00Z",
+      "days_left": 0,
+      "num_outcomes": 11,
+      "total_cost": 0.973,
+      "edge_pct": 2.77,
+      "min_outcome_liquidity": 428.31,
+      "legs": [
+        {
+          "outcome": "13°C or below",
+          "ask": 0.001,
+          "liquidity": 17031.55
+        },
+        {
+          "outcome": "14°C",
+          "ask": 0.001,
+          "liquidity": 14705.73
+        },
+        {
+          "outcome": "22°C",
+          "ask": 0.001,
+          "liquidity": 2841.82
+        },
+        {
+          "outcome": "23°C or higher",
+          "ask": 0.001,
+          "liquidity": 3518.9
+        },
+        {
+          "outcome": "19°C",
+          "ask": 0.003,
+          "liquidity": 1130.32
+        },
+        {
+          "outcome": "20°C",
+          "ask": 0.003,
+          "liquidity": 2370.28
+        },
+        {
+          "outcome": "21°C",
+          "ask": 0.004,
+          "liquidity": 2952.2
+        },
+        {
+          "outcome": "18°C",
+          "ask": 0.08,
+          "liquidity": 781.8
+        },
+        {
+          "outcome": "15°C",
+          "ask": 0.129,
+          "liquidity": 440.29
+        },
+        {
+          "outcome": "17°C",
+          "ask": 0.21,
+          "liquidity": 428.31
+        },
+        {
+          "outcome": "16°C",
+          "ask": 0.54,
+          "liquidity": 441.37
+        }
+      ]
+    },
+    {
+      "event_title": "Highest temperature in Atlanta on June 17?",
+      "slug": "highest-temperature-in-atlanta-on-june-17-2026",
+      "url": "https://polymarket.com/event/highest-temperature-in-atlanta-on-june-17-2026",
+      "end_date": "2026-06-17T12:00:00Z",
+      "days_left": 0,
+      "num_outcomes": 11,
+      "total_cost": 0.995,
+      "edge_pct": 0.5,
+      "min_outcome_liquidity": 1131.01,
+      "legs": [
+        {
+          "outcome": "77°F or below",
+          "ask": 0.001,
+          "liquidity": 3817.25
+        },
+        {
+          "outcome": "96°F or higher",
+          "ask": 0.001,
+          "liquidity": 3870.8
+        },
+        {
+          "outcome": "94-95°F",
+          "ask": 0.002,
+          "liquidity": 6308.42
+        },
+        {
+          "outcome": "92-93°F",
+          "ask": 0.003,
+          "liquidity": 1934.42
+        },
+        {
+          "outcome": "90-91°F",
+          "ask": 0.004,
+          "liquidity": 1246.41
+        },
+        {
+          "outcome": "78-79°F",
+          "ask": 0.016,
+          "liquidity": 1259.58
+        },
+        {
+          "outcome": "80-81°F",
+          "ask": 0.018,
+          "liquidity": 1534.82
+        },
+        {
+          "outcome": "82-83°F",
+          "ask": 0.04,
+          "liquidity": 1131.01
+        },
+        {
+          "outcome": "88-89°F",
+          "ask": 0.04,
+          "liquidity": 1444.22
+        },
+        {
+          "outcome": "86-87°F",
+          "ask": 0.4,
+          "liquidity": 1202.99
+        },
+        {
+          "outcome": "84-85°F",
+          "ask": 0.47,
+          "liquidity": 1307.7
+        }
+      ]
+    }
+  ]
 }
