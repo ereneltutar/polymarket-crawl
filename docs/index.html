@@ -3,39 +3,25 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Arb Bileti — Polymarket Günlük Tarama</title>
+<title>Overlay — Polymarket Günlük Tarama</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;800&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600;700&display=swap" rel="stylesheet">
 <style>
   :root{
-    /* --- Surface elevation (dark, near-black -> two lift steps) --- */
-    --bg: #0B0E11;
-    --surface: #161B21;       /* card resting surface */
-    --surface-2: #1E242B;     /* one step up: stub compartment, notice boxes */
-    --surface-edge: #2A313A;  /* dividers/borders, visible but quiet */
-
-    /* --- Text --- */
-    --ink: #EDEBE3;
-    --ink-dim: #9CA0A8;       /* lightened from v1 for a verified ~6.6:1 (surface) / ~7.4:1 (bg) ratio */
-
-    /* --- Accent --- */
-    --amber: #E8A33D;
-    --amber-dim: #6b4f23;
-    --amber-soft: rgba(232,163,61,0.16);
-    --warn: #C75146;
-
-    /* --- Elevation / radius tokens --- */
-    --radius-card: 10px;
-    --radius-note: 6px;
-    --shadow-sm: 0 1px 3px rgba(0,0,0,0.55);
-    --shadow-lg: 0 10px 26px rgba(0,0,0,0.55);
+    --bg: #0C0D10;
+    --ink: #ECE8DE;
+    --ink-dim: #93979E;
+    --rule: #262A30;
+    --amber: #D9A441;
+    --bar-a: #1C1F24;
+    --bar-b: #262A30;
   }
 
   *{ box-sizing: border-box; }
 
   body{
-    margin:0;
+    margin: 0;
     background: var(--bg);
     color: var(--ink);
     font-family: 'Inter', sans-serif;
@@ -43,329 +29,238 @@
   }
 
   .wrap{
-    max-width: 1180px;
+    max-width: 760px;
     margin: 0 auto;
-    padding: 40px 24px 80px;
+    padding: 48px 24px 80px;
   }
 
-  /* ---------- Header / masthead ---------- */
-  header{
-    display:flex;
-    flex-wrap: wrap;
-    align-items: flex-end;
-    justify-content: space-between;
-    gap: 20px;
-    border-bottom: 2px solid var(--surface-edge);
-    padding-bottom: 18px;
-    margin-bottom: 28px;
-  }
-
-  .wordmark{
-    font-family: 'Big Shoulders Display', sans-serif;
-    font-weight: 800;
-    font-size: clamp(32px, 6vw, 56px);
-    letter-spacing: 0.5px;
-    line-height: 0.95;
-    color: var(--ink);
+  /* ---------- Masthead: small, quiet, not the hero ---------- */
+  .brand{
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 1px;
     text-transform: uppercase;
-  }
-  .wordmark span{ color: var(--amber); }
-
-  .subline{
-    font-size: 13px;
     color: var(--ink-dim);
-    margin-top: 6px;
-    font-family: 'IBM Plex Mono', monospace;
+    margin-bottom: 40px;
   }
 
-  .meta-stub{
-    text-align: right;
+  /* ---------- Hero: today's count is the actual headline ---------- */
+  .hero-count{
     font-family: 'IBM Plex Mono', monospace;
-    font-size: 12.5px;
-    color: var(--ink-dim);
-    line-height: 1.6;
-  }
-  .meta-stub strong{
+    font-weight: 700;
+    font-size: clamp(56px, 14vw, 84px);
+    line-height: 0.9;
     color: var(--amber);
-    font-size: 22px;
-    display:block;
-    font-family: 'Big Shoulders Display', sans-serif;
-    font-weight: 800;
     font-variant-numeric: tabular-nums;
   }
-
-  /* ---------- Disclaimer ledger note ---------- */
-  .ledger-note{
-    max-width: 760px;                  /* keeps line length readable on wide desktops */
-    border: 1px dashed var(--surface-edge);
-    border-left: 3px solid var(--warn); /* quiet risk-flag accent, no JS needed */
-    background: var(--surface);
-    box-shadow: var(--shadow-sm);
+  .hero-label{
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
     color: var(--ink-dim);
+    margin-top: 6px;
+  }
+  .hero-sub{
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12.5px;
+    color: var(--ink-dim);
+    margin-top: 16px;
+  }
+  .hero-sub b{ color: var(--ink); font-variant-numeric: tabular-nums; }
+
+  .rule-thick{
+    border: none;
+    border-top: 2px solid var(--ink);
+    opacity: 0.9;
+    margin: 28px 0 22px;
+  }
+
+  .disclaimer{
     font-size: 12.5px;
     line-height: 1.6;
-    padding: 14px 18px 14px 16px;
-    border-radius: var(--radius-note);
-    margin-bottom: 32px;
+    color: var(--ink-dim);
+    max-width: 640px;
+    margin: 0 0 36px;
   }
-  .ledger-note b{ color: var(--ink); }
+  .disclaimer b{ color: var(--ink); }
 
-  /* ---------- Grid ---------- */
-  .grid{
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-    gap: 22px;
-  }
-
-  /* ---------- Ticket card ---------- */
-  .ticket{
-    position: relative;
-    display: grid;
-    grid-template-columns: 1fr 92px;
-    min-height: 180px;                 /* generous tap area even with short content */
-    background: var(--surface);
-    border-radius: var(--radius-card);
-    overflow: visible;
-    border: 1px solid var(--surface-edge);
-    box-shadow: var(--shadow-sm);
+  /* ---------- Ledger entries: continuous, hairline-divided, no boxes ---------- */
+  .entry{
+    display: block;
     text-decoration: none;
     color: inherit;
-    cursor: pointer;
-    touch-action: manipulation;
-    transition: transform .15s ease, border-color .15s ease, box-shadow .15s ease;
+    padding: 22px 4px;
+    margin: 0 -4px;
+    border-bottom: 1px solid var(--rule);
+    border-radius: 4px;
+    transition: background-color .15s ease, box-shadow .15s ease;
   }
-  .ticket:hover{
-    transform: translateY(-3px);
-    border-color: var(--amber-dim);
-    box-shadow: var(--shadow-lg);
+  .ledger .entry:first-of-type{ padding-top: 4px; }
+  .entry:hover, .entry:focus-visible{
+    background-color: rgba(255,255,255,0.025);
+    outline: none;
   }
-  .ticket:focus{ outline: none; }
-  .ticket:focus-visible{
-    outline: 2px solid var(--amber);
-    outline-offset: 3px;
-    border-radius: var(--radius-card);
+  .entry:focus-visible{
+    box-shadow: inset 3px 0 0 var(--amber);
   }
 
-  .ticket-body{
-    padding: 18px 18px 16px;
+  .entry-head{
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    margin-bottom: 6px;
+  }
+  .entry-rank{
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    color: var(--ink-dim);
+    flex-shrink: 0;
+  }
+  .entry-title{
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    font-size: 15.5px;
+    line-height: 1.4;
+    margin: 0;
+    flex: 1;
     min-width: 0;
   }
-
-  .days-left{
-    display:inline-block;
+  .entry-edge{
     font-family: 'IBM Plex Mono', monospace;
-    font-size: 11px;
-    letter-spacing: 0.5px;
-    color: var(--bg);
-    background: var(--ink);
-    padding: 2px 8px;
-    border-radius: 3px;
-    transform: rotate(-2deg);
-    margin-bottom: 10px;
-  }
-
-  .event-title{
-    font-size: 16px;
-    font-weight: 600;
-    line-height: 1.35;
-    margin: 0 0 14px;
-  }
-
-  .legs{
-    border-top: 1px solid var(--surface-edge);
-    padding-top: 10px;
-    margin-bottom: 12px;
-  }
-  .leg-row{
-    display:flex;
-    justify-content: space-between;
-    gap: 10px;
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 12.5px;
-    color: var(--ink-dim);
-    padding: 3px 0;
-  }
-  .leg-row span:first-child{
-    color: var(--ink);
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-  .leg-row span:last-child{ font-variant-numeric: tabular-nums; }
-
-  .totals{
-    display:flex;
-    justify-content: space-between;
-    align-items: baseline;
-    border-top: 1px solid var(--surface-edge);
-    padding-top: 10px;
-  }
-  .totals .label{ font-size: 11px; color: var(--ink-dim); letter-spacing: 0.5px; }
-  .totals .cost{
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 19px;
-    font-weight: 600;
-    color: var(--ink);
-    font-variant-numeric: tabular-nums;
-  }
-  .liquidity-note{
-    font-size: 11px;
-    color: var(--ink-dim);
-    margin-top: 6px;
-  }
-
-  /* ---------- Perforated stub ---------- */
-  .stub{
-    position: relative;
-    display:flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    padding: 10px 6px;
-    background: var(--surface-2);
-    border-left: 2px dashed var(--surface-edge);
-    border-radius: 0 var(--radius-card) var(--radius-card) 0;
-  }
-  .stub::before, .stub::after{
-    content:"";
-    position:absolute;
-    left: -7px;
-    width: 14px; height: 14px;
-    background: var(--bg);
-    border-radius: 50%;
-  }
-  .stub::before{ top: -7px; }
-  .stub::after{ bottom: -7px; }
-
-  .pays-label{
-    font-size: 10.5px;
-    letter-spacing: 0.8px;
-    color: var(--ink-dim);
-    text-align:center;
-  }
-  .pays-amount{
-    font-family: 'IBM Plex Mono', monospace;
-    font-weight: 600;
-    font-size: 15px;
-    color: var(--ink);
-    font-variant-numeric: tabular-nums;
-  }
-
-  .stamp{
-    font-family: 'Big Shoulders Display', sans-serif;
-    font-weight: 800;
-    font-size: 20px;
-    color: var(--amber);
-    border: 2px solid var(--amber);
-    border-radius: 50%;
-    width: 58px; height: 58px;
-    display:flex; align-items:center; justify-content:center;
-    transform: rotate(-9deg);
-    text-align:center;
-    line-height: 1;
-    font-variant-numeric: tabular-nums;
-  }
-
-  /* ---------- Empty / loading / error states ---------- */
-  .state{
-    grid-column: 1 / -1;
-    max-width: 620px;
-    margin: 0 auto;
-    text-align:center;
-    padding: 56px 28px;
-    background: var(--surface-2);
-    border: 1px dashed var(--surface-edge);
-    border-radius: var(--radius-note);
-    box-shadow: var(--shadow-sm);
-    color: var(--ink-dim);
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 13.5px;
-    line-height: 1.6;
-  }
-  .state strong{
-    display:block;
-    font-family: 'Big Shoulders Display', sans-serif;
-    font-size: 28px;
-    color: var(--ink);
     font-weight: 700;
-    margin-bottom: 10px;
-    text-transform: uppercase;
+    font-size: 16px;
+    color: var(--amber);
+    white-space: nowrap;
+    flex-shrink: 0;
+    font-variant-numeric: tabular-nums;
   }
 
-  footer{
-    margin-top: 50px;
-    text-align:center;
+  .entry-meta{
+    font-family: 'IBM Plex Mono', monospace;
     font-size: 11.5px;
     color: var(--ink-dim);
-    font-family: 'IBM Plex Mono', monospace;
+    margin-bottom: 12px;
   }
 
-  /* ---------- Reduced motion: respect the OS-level preference ---------- */
+  /* ---------- The complete-set bar: the one signature element ---------- */
+  .bar{
+    display: flex;
+    height: 8px;
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 10px;
+    background: var(--bar-a);
+  }
+  .seg{ height: 100%; }
+  .seg-a{ background: var(--bar-a); }
+  .seg-b{ background: var(--bar-b); }
+  .seg-edge{ background: var(--amber); }
+
+  .legend{
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 14px;
+    margin-bottom: 14px;
+  }
+  .chip{
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11.5px;
+    color: var(--ink-dim);
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .chip b{ color: var(--ink); font-variant-numeric: tabular-nums; }
+  .dot{ width: 7px; height: 7px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
+  .dot-a{ background: var(--bar-a); border: 1px solid var(--rule); }
+  .dot-b{ background: var(--bar-b); }
+
+  .entry-foot{
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: var(--ink-dim);
+  }
+  .entry-foot .cost{ color: var(--ink); font-weight: 600; font-variant-numeric: tabular-nums; }
+  .entry-foot .open{ color: var(--ink-dim); transition: color .15s ease; }
+  .entry:hover .entry-foot .open,
+  .entry:focus-visible .entry-foot .open{ color: var(--amber); }
+
+  /* ---------- Empty / loading / error: a ledger row that just says so ---------- */
+  .state{ padding: 28px 4px; }
+  .state-msg{
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 14px;
+    color: var(--ink);
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .state-sub{ font-size: 12.5px; color: var(--ink-dim); line-height: 1.6; }
+
+  .pulse{
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--amber);
+    display: inline-block;
+    animation: pulse 1.4s ease-in-out infinite;
+  }
+  @keyframes pulse{ 0%,100%{ opacity:.3; } 50%{ opacity:1; } }
+
+  footer{
+    margin-top: 48px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--ink-dim);
+  }
+
+  /* ---------- Reduced motion ---------- */
   @media (prefers-reduced-motion: reduce){
     *, *::before, *::after{
       animation-duration: 0.01ms !important;
       animation-iteration-count: 1 !important;
       transition-duration: 0.01ms !important;
-      scroll-behavior: auto !important;
     }
-    .ticket:hover{ transform: none; }
+    .pulse{ animation: none; opacity: .8; }
   }
 
-  /* ---------- Small phones (e.g. iPhone SE/mini class, ~480px) ---------- */
+  /* ---------- Small phones ---------- */
   @media (max-width: 480px){
-    .ticket{ grid-template-columns: 1fr 76px; min-height: 165px; }
-    .stamp{ width: 46px; height: 46px; font-size: 16px; }
-  }
-
-  /* ---------- Very small phones (375px and below) ---------- */
-  @media (max-width: 380px){
-    .wrap{ padding: 28px 16px 64px; }
-    header{ align-items: flex-start; }
-    .wordmark{ font-size: clamp(28px, 9vw, 38px); }
-    .meta-stub{ text-align: left; width: 100%; }
-    .ledger-note{ font-size: 12px; padding: 12px 14px 12px 13px; }
-    .grid{ grid-template-columns: 1fr; gap: 14px; }
-    .ticket{ grid-template-columns: 1fr 60px; min-height: 150px; }
-    .ticket-body{ padding: 14px 14px 12px; }
-    .event-title{ font-size: 14.5px; }
-    .leg-row{ font-size: 11.5px; }
-    .totals .cost{ font-size: 17px; }
-    .liquidity-note{ font-size: 10.5px; }
-    .stub{ padding: 8px 4px; gap: 4px; }
-    .stamp{ width: 38px; height: 38px; font-size: 12px; border-width: 1.5px; }
-    .pays-label{ font-size: 9.5px; }
-    .pays-amount{ font-size: 13px; }
-    .days-left{ font-size: 10px; }
-    .state{ padding: 40px 18px; }
-    .state strong{ font-size: 22px; }
+    .wrap{ padding: 32px 18px 64px; }
+    .hero-count{ font-size: clamp(46px, 20vw, 64px); }
+    .entry-title{ font-size: 14.5px; }
+    .entry-edge{ font-size: 14.5px; }
+    .legend{ gap: 5px 10px; }
+    .entry-foot{ font-size: 11px; }
   }
 </style>
 </head>
 <body>
 
 <div class="wrap">
-  <header>
-    <div>
-      <div class="wordmark">ARB <span>BİLETİ</span></div>
-      <div class="subline">Polymarket · günlük otomatik tarama · negRisk arbitraj taraması</div>
-    </div>
-    <div class="meta-stub" id="metaStub">
-      <strong id="oppCount">—</strong>
-      son tarama: <span id="scanTime">—</span>
-    </div>
-  </header>
+  <div class="brand">Overlay — Polymarket günlük tarama</div>
 
-  <div class="ledger-note">
-    <b>Nasıl okunur:</b> Her bilet, birbirini dışlayan seçeneklerin tamamını şu anki en iyi satış (ask)
-    fiyatından satın alırsan ödenen toplam tutarın $1.00'ın altında kaldığı, yani teorik olarak risksiz
-    bir kâr payı bıraktığı durumları gösterir. Bu, <b>gerçek bir kazanç garantisi değildir</b> — işlem ücreti,
-    kayma (slippage), ince likidite ve fiyatların emri girene kadar değişmesi bu farkı küçültebilir
-    veya tamamen yok edebilir. Yatırım tavsiyesi değildir.
+  <div class="hero">
+    <div class="hero-count" id="oppCount">—</div>
+    <div class="hero-label">fırsat bugün</div>
+    <div class="hero-sub"><b id="scannedCount">—</b> piyasa tarandı · son güncelleme <b id="scanTime">—</b></div>
   </div>
 
-  <div class="grid" id="grid">
-    <div class="state"><strong>Taranıyor</strong>Sonuçlar yükleniyor…</div>
+  <hr class="rule-thick">
+
+  <p class="disclaimer">
+    Her satır, birbirini dışlayan seçeneklerin tamamını şu anki en iyi satış fiyatından alırsan
+    ödediğin toplamın $1.00'ın altında kaldığı durumları gösterir — <b>gerçek bir kazanç garantisi değildir.</b>
+    İşlem ücreti, kayma (slippage) ve ince likidite bu farkı küçültebilir ya da tamamen yok edebilir.
+    Yatırım tavsiyesi değildir.
+  </p>
+
+  <div class="ledger" id="grid">
+    <div class="state"><span class="state-msg"><span class="pulse"></span>Taranıyor</span></div>
   </div>
 
   <footer>Her sabah otomatik güncellenir · veri kaynağı: gamma-api.polymarket.com</footer>
@@ -378,35 +273,45 @@
     return d.toLocaleString('tr-TR', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' });
   }
 
-  function renderTicket(opp){
-    const legsHtml = opp.legs.map(leg => `
-      <div class="leg-row">
-        <span>${leg.outcome}</span>
-        <span>$${leg.ask.toFixed(2)}</span>
-      </div>
-    `).join('');
+  function buildBar(legs, totalCost){
+    const raw = legs.map(leg => Math.max(leg.ask * 100, 0.3));
+    const edgeRaw = Math.max((1 - totalCost) * 100, 0);
+    const sum = raw.reduce((a, b) => a + b, 0) + edgeRaw;
+    const scale = sum > 0 ? 100 / sum : 1;   // many tiny legs can push the raw sum past 100% — normalize so it never overflows
 
-    const daysLabel = opp.days_left === null ? '?' :
-      (opp.days_left <= 0 ? 'BUGÜN' : `${opp.days_left} GÜN KALDI`);
+    const segs = legs.map((leg, i) => {
+      const pct = raw[i] * scale;
+      const tone = i % 2 === 0 ? 'a' : 'b';
+      return `<span class="seg seg-${tone}" style="width:${pct.toFixed(2)}%"></span>`;
+    }).join('');
+    const edgePct = edgeRaw * scale;
+    return `<div class="bar">${segs}<span class="seg seg-edge" style="width:${edgePct.toFixed(2)}%"></span></div>`;
+  }
+
+  function buildLegend(legs){
+    return legs.map((leg, i) => `
+      <span class="chip"><i class="dot dot-${i % 2 === 0 ? 'a' : 'b'}"></i>${leg.outcome} <b>$${leg.ask.toFixed(3)}</b></span>
+    `).join('');
+  }
+
+  function renderEntry(opp, index){
+    const daysLabel = opp.days_left === null ? 'tarih belirsiz' :
+      (opp.days_left <= 0 ? 'bugün kapanıyor' : `${opp.days_left} gün kaldı`);
+    const rank = String(index + 1).padStart(2, '0');
 
     return `
-      <a class="ticket" href="${opp.url || '#'}" target="_blank" rel="noopener">
-        <div class="ticket-body">
-          <span class="days-left">${daysLabel}</span>
-          <p class="event-title">${opp.event_title}</p>
-          <div class="legs">${legsHtml}</div>
-          <div class="totals">
-            <div>
-              <div class="label">TOPLAM MALİYET</div>
-              <div class="cost">$${opp.total_cost.toFixed(2)}</div>
-            </div>
-          </div>
-          <div class="liquidity-note">en düşük bacak likiditesi: $${Math.round(opp.min_outcome_liquidity).toLocaleString('tr-TR')}</div>
+      <a class="entry" href="${opp.url || '#'}" target="_blank" rel="noopener">
+        <div class="entry-head">
+          <span class="entry-rank">${rank}</span>
+          <p class="entry-title">${opp.event_title}</p>
+          <span class="entry-edge">+${opp.edge_pct.toFixed(1)}%</span>
         </div>
-        <div class="stub">
-          <div class="pays-label">ÖDER</div>
-          <div class="pays-amount">$1.00</div>
-          <div class="stamp">+${opp.edge_pct.toFixed(1)}%</div>
+        <div class="entry-meta">${daysLabel} · ${opp.num_outcomes} seçenek · min. likidite $${Math.round(opp.min_outcome_liquidity).toLocaleString('tr-TR')}</div>
+        ${buildBar(opp.legs, opp.total_cost)}
+        <div class="legend">${buildLegend(opp.legs)}</div>
+        <div class="entry-foot">
+          <span>maliyet <span class="cost">$${opp.total_cost.toFixed(3)}</span> / $1.00 karşılığı</span>
+          <span class="open">↗ polymarket'te aç</span>
         </div>
       </a>
     `;
@@ -421,15 +326,16 @@
 
       document.getElementById('scanTime').textContent = fmtDate(data.generated_at);
       document.getElementById('oppCount').textContent = data.opportunities.length;
+      document.getElementById('scannedCount').textContent = (data.scanned_events || 0).toLocaleString('tr-TR');
 
       if(data.opportunities.length === 0){
-        grid.innerHTML = `<div class="state"><strong>Bugün bilet yok</strong>Piyasalar dengeli görünüyor — ${data.scanned_events || 0} event tarandı.</div>`;
+        grid.innerHTML = `<div class="state"><div class="state-msg">Bugün kayıt yok</div><div class="state-sub">Piyasalar dengeli görünüyor — ${data.scanned_events || 0} piyasa tarandı.</div></div>`;
         return;
       }
 
-      grid.innerHTML = data.opportunities.map(renderTicket).join('');
+      grid.innerHTML = data.opportunities.map(renderEntry).join('');
     }catch(err){
-      grid.innerHTML = `<div class="state"><strong>Henüz tarama yok</strong>results.json bulunamadı. GitHub Actions sekmesinden "Daily Polymarket Scan" iş akışını bir kere manuel çalıştır (workflow_dispatch), ya da ilk otomatik taramanın geçmesini bekle.</div>`;
+      grid.innerHTML = `<div class="state"><div class="state-msg">Henüz tarama yok</div><div class="state-sub">results.json bulunamadı. GitHub Actions sekmesinden "Daily Polymarket Scan" iş akışını bir kere manuel çalıştır, ya da ilk otomatik taramanın geçmesini bekle.</div></div>`;
     }
   }
 
