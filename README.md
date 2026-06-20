@@ -1,4 +1,4 @@
-# Arb Bileti — Polymarket Günlük Arbitraj Taraması
+# Overlay — Polymarket Günlük Arbitraj Taraması
 
 Her sabah otomatik çalışır: Polymarket'taki **açık, deadline'ı 14 gün içinde olan**
 "çok seçenekli" (negRisk) event'leri tarar, seçeneklerin toplam satış fiyatı
