@@ -9,14 +9,27 @@
 <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;800&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root{
+    /* --- Surface elevation (dark, near-black -> two lift steps) --- */
     --bg: #0B0E11;
-    --surface: #15191E;
-    --surface-edge: #20262D;
+    --surface: #161B21;       /* card resting surface */
+    --surface-2: #1E242B;     /* one step up: stub compartment, notice boxes */
+    --surface-edge: #2A313A;  /* dividers/borders, visible but quiet */
+
+    /* --- Text --- */
     --ink: #EDEBE3;
-    --ink-dim: #8B8F98;
+    --ink-dim: #9CA0A8;       /* lightened from v1 for a verified ~6.6:1 (surface) / ~7.4:1 (bg) ratio */
+
+    /* --- Accent --- */
     --amber: #E8A33D;
     --amber-dim: #6b4f23;
+    --amber-soft: rgba(232,163,61,0.16);
     --warn: #C75146;
+
+    /* --- Elevation / radius tokens --- */
+    --radius-card: 10px;
+    --radius-note: 6px;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.55);
+    --shadow-lg: 0 10px 26px rgba(0,0,0,0.55);
   }
 
   *{ box-sizing: border-box; }
@@ -50,7 +63,7 @@
   .wordmark{
     font-family: 'Big Shoulders Display', sans-serif;
     font-weight: 800;
-    font-size: clamp(36px, 6vw, 56px);
+    font-size: clamp(32px, 6vw, 56px);
     letter-spacing: 0.5px;
     line-height: 0.95;
     color: var(--ink);
@@ -68,7 +81,7 @@
   .meta-stub{
     text-align: right;
     font-family: 'IBM Plex Mono', monospace;
-    font-size: 12px;
+    font-size: 12.5px;
     color: var(--ink-dim);
     line-height: 1.6;
   }
@@ -78,17 +91,21 @@
     display:block;
     font-family: 'Big Shoulders Display', sans-serif;
     font-weight: 800;
+    font-variant-numeric: tabular-nums;
   }
 
   /* ---------- Disclaimer ledger note ---------- */
   .ledger-note{
+    max-width: 760px;                  /* keeps line length readable on wide desktops */
     border: 1px dashed var(--surface-edge);
+    border-left: 3px solid var(--warn); /* quiet risk-flag accent, no JS needed */
     background: var(--surface);
+    box-shadow: var(--shadow-sm);
     color: var(--ink-dim);
     font-size: 12.5px;
     line-height: 1.6;
-    padding: 14px 18px;
-    border-radius: 4px;
+    padding: 14px 18px 14px 16px;
+    border-radius: var(--radius-note);
     margin-bottom: 32px;
   }
   .ledger-note b{ color: var(--ink); }
@@ -105,17 +122,28 @@
     position: relative;
     display: grid;
     grid-template-columns: 1fr 92px;
+    min-height: 180px;                 /* generous tap area even with short content */
     background: var(--surface);
-    border-radius: 10px;
+    border-radius: var(--radius-card);
     overflow: visible;
     border: 1px solid var(--surface-edge);
+    box-shadow: var(--shadow-sm);
     text-decoration: none;
     color: inherit;
-    transition: transform .15s ease, border-color .15s ease;
+    cursor: pointer;
+    touch-action: manipulation;
+    transition: transform .15s ease, border-color .15s ease, box-shadow .15s ease;
   }
   .ticket:hover{
     transform: translateY(-3px);
     border-color: var(--amber-dim);
+    box-shadow: var(--shadow-lg);
+  }
+  .ticket:focus{ outline: none; }
+  .ticket:focus-visible{
+    outline: 2px solid var(--amber);
+    outline-offset: 3px;
+    border-radius: var(--radius-card);
   }
 
   .ticket-body{
@@ -163,6 +191,7 @@
     text-overflow: ellipsis;
     white-space: nowrap;
   }
+  .leg-row span:last-child{ font-variant-numeric: tabular-nums; }
 
   .totals{
     display:flex;
@@ -177,9 +206,10 @@
     font-size: 19px;
     font-weight: 600;
     color: var(--ink);
+    font-variant-numeric: tabular-nums;
   }
   .liquidity-note{
-    font-size: 10.5px;
+    font-size: 11px;
     color: var(--ink-dim);
     margin-top: 6px;
   }
@@ -193,7 +223,9 @@
     justify-content: center;
     gap: 6px;
     padding: 10px 6px;
+    background: var(--surface-2);
     border-left: 2px dashed var(--surface-edge);
+    border-radius: 0 var(--radius-card) var(--radius-card) 0;
   }
   .stub::before, .stub::after{
     content:"";
@@ -207,7 +239,7 @@
   .stub::after{ bottom: -7px; }
 
   .pays-label{
-    font-size: 9.5px;
+    font-size: 10.5px;
     letter-spacing: 0.8px;
     color: var(--ink-dim);
     text-align:center;
@@ -217,6 +249,7 @@
     font-weight: 600;
     font-size: 15px;
     color: var(--ink);
+    font-variant-numeric: tabular-nums;
   }
 
   .stamp{
@@ -231,16 +264,24 @@
     transform: rotate(-9deg);
     text-align:center;
     line-height: 1;
+    font-variant-numeric: tabular-nums;
   }
 
   /* ---------- Empty / loading / error states ---------- */
   .state{
     grid-column: 1 / -1;
+    max-width: 620px;
+    margin: 0 auto;
     text-align:center;
-    padding: 70px 20px;
+    padding: 56px 28px;
+    background: var(--surface-2);
+    border: 1px dashed var(--surface-edge);
+    border-radius: var(--radius-note);
+    box-shadow: var(--shadow-sm);
     color: var(--ink-dim);
     font-family: 'IBM Plex Mono', monospace;
     font-size: 13.5px;
+    line-height: 1.6;
   }
   .state strong{
     display:block;
@@ -248,21 +289,56 @@
     font-size: 28px;
     color: var(--ink);
     font-weight: 700;
-    margin-bottom: 8px;
+    margin-bottom: 10px;
     text-transform: uppercase;
   }
 
   footer{
     margin-top: 50px;
     text-align:center;
-    font-size: 11px;
+    font-size: 11.5px;
     color: var(--ink-dim);
     font-family: 'IBM Plex Mono', monospace;
   }
 
+  /* ---------- Reduced motion: respect the OS-level preference ---------- */
+  @media (prefers-reduced-motion: reduce){
+    *, *::before, *::after{
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+    .ticket:hover{ transform: none; }
+  }
+
+  /* ---------- Small phones (e.g. iPhone SE/mini class, ~480px) ---------- */
   @media (max-width: 480px){
-    .ticket{ grid-template-columns: 1fr 76px; }
+    .ticket{ grid-template-columns: 1fr 76px; min-height: 165px; }
     .stamp{ width: 46px; height: 46px; font-size: 16px; }
+  }
+
+  /* ---------- Very small phones (375px and below) ---------- */
+  @media (max-width: 380px){
+    .wrap{ padding: 28px 16px 64px; }
+    header{ align-items: flex-start; }
+    .wordmark{ font-size: clamp(28px, 9vw, 38px); }
+    .meta-stub{ text-align: left; width: 100%; }
+    .ledger-note{ font-size: 12px; padding: 12px 14px 12px 13px; }
+    .grid{ grid-template-columns: 1fr; gap: 14px; }
+    .ticket{ grid-template-columns: 1fr 60px; min-height: 150px; }
+    .ticket-body{ padding: 14px 14px 12px; }
+    .event-title{ font-size: 14.5px; }
+    .leg-row{ font-size: 11.5px; }
+    .totals .cost{ font-size: 17px; }
+    .liquidity-note{ font-size: 10.5px; }
+    .stub{ padding: 8px 4px; gap: 4px; }
+    .stamp{ width: 38px; height: 38px; font-size: 12px; border-width: 1.5px; }
+    .pays-label{ font-size: 9.5px; }
+    .pays-amount{ font-size: 13px; }
+    .days-left{ font-size: 10px; }
+    .state{ padding: 40px 18px; }
+    .state strong{ font-size: 22px; }
   }
 </style>
 </head>
