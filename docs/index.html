@@ -136,6 +136,20 @@
     font-variant-numeric: tabular-nums;
   }
 
+  /* ---------- Source tag: which algorithm produced this entry ---------- */
+  .tag{
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    color: var(--ink-dim);
+    border: 1px solid var(--rule);
+    border-radius: 3px;
+    padding: 2px 5px;
+    flex-shrink: 0;
+    align-self: center;
+  }
+
   .entry-meta{
     font-family: 'IBM Plex Mono', monospace;
     font-size: 11.5px;
@@ -156,6 +170,7 @@
   .seg-a{ background: var(--bar-a); }
   .seg-b{ background: var(--bar-b); }
   .seg-edge{ background: var(--amber); }
+  .seg-risk{ background: var(--rule); }
 
   .legend{
     display: flex;
@@ -253,10 +268,13 @@
   <hr class="rule-thick">
 
   <p class="disclaimer">
-    Her satır, birbirini dışlayan seçeneklerin tamamını şu anki en iyi satış fiyatından alırsan
-    ödediğin toplamın $1.00'ın altında kaldığı durumları gösterir — <b>gerçek bir kazanç garantisi değildir.</b>
-    İşlem ücreti, kayma (slippage) ve ince likidite bu farkı küçültebilir ya da tamamen yok edebilir.
-    Yatırım tavsiyesi değildir.
+    <b>[ARB]</b> satırları, birbirini dışlayan seçeneklerin tamamını şu anki en iyi satış fiyatından
+    alırsan ödediğin toplamın $1.00'ın altında kaldığı durumları gösterir — matematiksel olarak
+    risksiz, ama yine de <b>kazanç garantisi değildir</b> (işlem ücreti, kayma, ince likidite).
+    <b>[CAL]</b> satırları ise tamamen farklı bir şey: geçmiş kapanmış market'lerde fiyat ile
+    gerçekleşen sonuç arasında istatistiksel olarak anlamlı bir sapma (favori-uzun şans yanlılığı)
+    bulunan fiyat aralıklarını işaretler — bu, <b>tek bir bahiste garanti değil</b>, çok sayıda
+    tekrarlanan pozisyonda beklenen değeri lehine çeken bir eğilimdir. Hiçbiri yatırım tavsiyesi değildir.
   </p>
 
   <div class="ledger" id="grid">
@@ -288,21 +306,39 @@
     return `<div class="bar">${segs}<span class="seg seg-edge" style="width:${edgePct.toFixed(2)}%"></span></div>`;
   }
 
+  function buildCalibrationBar(item){
+    // Uc segment: odedigin (notr ton) + tarihsel edge (amber) + kalan risk (notr/karanlik ton).
+    // Toplam her zaman $1'i temsil eder, tipki arbitraj barindaki gibi - sadece anlami farkli:
+    // burada "kalan" senin alip alamayacagin pay degil, gecmise gore hala yanilma ihtimalin.
+    const trueRate = item.recommended_side === 'YES'
+      ? item.bucket_historical_rate
+      : (1 - item.bucket_historical_rate);
+    const costPct = Math.max(item.implied_cost * 100, 0.3);
+    const edgePct = Math.max((trueRate - item.implied_cost) * 100, 0);
+    const riskPct = Math.max(100 - costPct - edgePct, 0);
+    return `<div class="bar">
+      <span class="seg seg-a" style="width:${costPct.toFixed(2)}%"></span>
+      <span class="seg seg-edge" style="width:${edgePct.toFixed(2)}%"></span>
+      <span class="seg seg-risk" style="width:${riskPct.toFixed(2)}%"></span>
+    </div>`;
+  }
+
   function buildLegend(legs){
     return legs.map((leg, i) => `
       <span class="chip"><i class="dot dot-${i % 2 === 0 ? 'a' : 'b'}"></i>${leg.outcome} <b>$${leg.ask.toFixed(3)}</b></span>
     `).join('');
   }
 
-  function renderEntry(opp, index){
+  const TAG_LABELS = { arbitrage: 'ARB', calibration: 'CAL', resolution_lag: 'LAG' };
+
+  function renderArbitrageEntry(opp, rank){
     const daysLabel = opp.days_left === null ? 'tarih belirsiz' :
       (opp.days_left <= 0 ? 'bugün kapanıyor' : `${opp.days_left} gün kaldı`);
-    const rank = String(index + 1).padStart(2, '0');
-
     return `
       <a class="entry" href="${opp.url || '#'}" target="_blank" rel="noopener">
         <div class="entry-head">
           <span class="entry-rank">${rank}</span>
+          <span class="tag">${TAG_LABELS.arbitrage}</span>
           <p class="entry-title">${opp.event_title}</p>
           <span class="entry-edge">+${opp.edge_pct.toFixed(1)}%</span>
         </div>
@@ -317,6 +353,37 @@
     `;
   }
 
+  function renderCalibrationEntry(sig, rank){
+    const daysLabel = sig.days_left === null ? 'tarih belirsiz' :
+      (sig.days_left <= 0 ? 'bugün kapanıyor' : `${sig.days_left} gün kaldı`);
+    const [lo, hi] = sig.bucket_range;
+    const rangeLabel = `%${Math.round(lo * 100)}–%${Math.round(hi * 100)} kovası`;
+    const trueRatePct = (sig.recommended_side === 'YES' ? sig.bucket_historical_rate : 1 - sig.bucket_historical_rate) * 100;
+
+    return `
+      <a class="entry" href="${sig.url || '#'}" target="_blank" rel="noopener">
+        <div class="entry-head">
+          <span class="entry-rank">${rank}</span>
+          <span class="tag">${TAG_LABELS.calibration}</span>
+          <p class="entry-title">${sig.market_question}</p>
+          <span class="entry-edge">+${sig.edge_pct.toFixed(1)}%</span>
+        </div>
+        <div class="entry-meta">${sig.recommended_side} öner · ${daysLabel} · ${rangeLabel} · tarihsel oran %${(sig.bucket_historical_rate * 100).toFixed(1)} (n=${sig.bucket_sample_size})</div>
+        ${buildCalibrationBar(sig)}
+        <div class="entry-foot">
+          <span>maliyet <span class="cost">$${sig.implied_cost.toFixed(3)}</span> / tarihsel %${trueRatePct.toFixed(1)} oranla</span>
+          <span class="open">↗ polymarket'te aç</span>
+        </div>
+      </a>
+    `;
+  }
+
+  function renderEntry(item, index){
+    const rank = String(index + 1).padStart(2, '0');
+    if(item.type === 'calibration') return renderCalibrationEntry(item, rank);
+    return renderArbitrageEntry(item, rank);
+  }
+
   async function load(){
     const grid = document.getElementById('grid');
     try{
@@ -324,16 +391,20 @@
       if(!res.ok) throw new Error('not found');
       const data = await res.json();
 
+      const arbitrage = (data.opportunities || []).map(o => ({ ...o, type: 'arbitrage' }));
+      const calibration = (data.calibration_signals || []).map(s => ({ ...s, type: 'calibration' }));
+      const merged = [...arbitrage, ...calibration].sort((a, b) => b.edge_pct - a.edge_pct);
+
       document.getElementById('scanTime').textContent = fmtDate(data.generated_at);
-      document.getElementById('oppCount').textContent = data.opportunities.length;
+      document.getElementById('oppCount').textContent = merged.length;
       document.getElementById('scannedCount').textContent = (data.scanned_events || 0).toLocaleString('tr-TR');
 
-      if(data.opportunities.length === 0){
+      if(merged.length === 0){
         grid.innerHTML = `<div class="state"><div class="state-msg">Bugün kayıt yok</div><div class="state-sub">Piyasalar dengeli görünüyor — ${data.scanned_events || 0} piyasa tarandı.</div></div>`;
         return;
       }
 
-      grid.innerHTML = data.opportunities.map(renderEntry).join('');
+      grid.innerHTML = merged.map(renderEntry).join('');
     }catch(err){
       grid.innerHTML = `<div class="state"><div class="state-msg">Henüz tarama yok</div><div class="state-sub">results.json bulunamadı. GitHub Actions sekmesinden "Daily Polymarket Scan" iş akışını bir kere manuel çalıştır, ya da ilk otomatik taramanın geçmesini bekle.</div></div>`;
     }
