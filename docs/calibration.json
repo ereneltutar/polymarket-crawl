@@ -1,0 +1,273 @@
+{
+  "generated_at": "2026-06-21T18:39:22.899361+00:00",
+  "lead_days": 7,
+  "min_duration_days": 3,
+  "bin_width": 0.05,
+  "min_sample_per_bucket": 30,
+  "closed_markets_scanned": 2100,
+  "markets_qualifying": 500,
+  "markets_with_history": 7,
+  "history_fetch_failures": 493,
+  "bins": [
+    {
+      "range": [
+        0.0,
+        0.05
+      ],
+      "midpoint": 0.025,
+      "sample_size": 5,
+      "resolved_yes_rate": null,
+      "ci_95_low": null,
+      "ci_95_high": null,
+      "bias_pct": null,
+      "significant": false
+    },
+    {
+      "range": [
+        0.05,
+        0.1
+      ],
+      "midpoint": 0.075,
+      "sample_size": 0,
+      "resolved_yes_rate": null,
+      "ci_95_low": null,
+      "ci_95_high": null,
+      "bias_pct": null,
+      "significant": false
+    },
+    {
+      "range": [
+        0.1,
+        0.15
+      ],
+      "midpoint": 0.125,
+      "sample_size": 0,
+      "resolved_yes_rate": null,
+      "ci_95_low": null,
+      "ci_95_high": null,
+      "bias_pct": null,
+      "significant": false
+    },
+    {
+      "range": [
+        0.15,
+        0.2
+      ],
+      "midpoint": 0.175,
+      "sample_size": 0,
+      "resolved_yes_rate": null,
+      "ci_95_low": null,
+      "ci_95_high": null,
+      "bias_pct": null,
+      "significant": false
+    },
+    {
+      "range": [
+        0.2,
+        0.25
+      ],
+      "midpoint": 0.225,
+      "sample_size": 0,
+      "resolved_yes_rate": null,
+      "ci_95_low": null,
+      "ci_95_high": null,
+      "bias_pct": null,
+      "significant": false
+    },
+    {
+      "range": [
+        0.25,
+        0.3
+      ],
+      "midpoint": 0.275,
+      "sample_size": 0,
+      "resolved_yes_rate": null,
+      "ci_95_low": null,
+      "ci_95_high": null,
+      "bias_pct": null,
+      "significant": false
+    },
+    {
+      "range": [
+        0.3,
+        0.35
+      ],
+      "midpoint": 0.325,
+      "sample_size": 0,
+      "resolved_yes_rate": null,
+      "ci_95_low": null,
+      "ci_95_high": null,
+      "bias_pct": null,
+      "significant": false
+    },
+    {
+      "range": [
+        0.35,
+        0.4
+      ],
+      "midpoint": 0.375,
+      "sample_size": 0,
+      "resolved_yes_rate": null,
+      "ci_95_low": null,
+      "ci_95_high": null,
+      "bias_pct": null,
+      "significant": false
+    },
+    {
+      "range": [
+        0.4,
+        0.45
+      ],
+      "midpoint": 0.425,
+      "sample_size": 0,
+      "resolved_yes_rate": null,
+      "ci_95_low": null,
+      "ci_95_high": null,
+      "bias_pct": null,
+      "significant": false
+    },
+    {
+      "range": [
+        0.45,
+        0.5
+      ],
+      "midpoint": 0.475,
+      "sample_size": 0,
+      "resolved_yes_rate": null,
+      "ci_95_low": null,
+      "ci_95_high": null,
+      "bias_pct": null,
+      "significant": false
+    },
+    {
+      "range": [
+        0.5,
+        0.55
+      ],
+      "midpoint": 0.525,
+      "sample_size": 0,
+      "resolved_yes_rate": null,
+      "ci_95_low": null,
+      "ci_95_high": null,
+      "bias_pct": null,
+      "significant": false
+    },
+    {
+      "range": [
+        0.55,
+        0.6
+      ],
+      "midpoint": 0.575,
+      "sample_size": 0,
+      "resolved_yes_rate": null,
+      "ci_95_low": null,
+      "ci_95_high": null,
+      "bias_pct": null,
+      "significant": false
+    },
+    {
+      "range": [
+        0.6,
+        0.65
+      ],
+      "midpoint": 0.625,
+      "sample_size": 0,
+      "resolved_yes_rate": null,
+      "ci_95_low": null,
+      "ci_95_high": null,
+      "bias_pct": null,
+      "significant": false
+    },
+    {
+      "range": [
+        0.65,
+        0.7
+      ],
+      "midpoint": 0.675,
+      "sample_size": 0,
+      "resolved_yes_rate": null,
+      "ci_95_low": null,
+      "ci_95_high": null,
+      "bias_pct": null,
+      "significant": false
+    },
+    {
+      "range": [
+        0.7,
+        0.75
+      ],
+      "midpoint": 0.725,
+      "sample_size": 0,
+      "resolved_yes_rate": null,
+      "ci_95_low": null,
+      "ci_95_high": null,
+      "bias_pct": null,
+      "significant": false
+    },
+    {
+      "range": [
+        0.75,
+        0.8
+      ],
+      "midpoint": 0.775,
+      "sample_size": 0,
+      "resolved_yes_rate": null,
+      "ci_95_low": null,
+      "ci_95_high": null,
+      "bias_pct": null,
+      "significant": false
+    },
+    {
+      "range": [
+        0.8,
+        0.85
+      ],
+      "midpoint": 0.825,
+      "sample_size": 0,
+      "resolved_yes_rate": null,
+      "ci_95_low": null,
+      "ci_95_high": null,
+      "bias_pct": null,
+      "significant": false
+    },
+    {
+      "range": [
+        0.85,
+        0.9
+      ],
+      "midpoint": 0.875,
+      "sample_size": 0,
+      "resolved_yes_rate": null,
+      "ci_95_low": null,
+      "ci_95_high": null,
+      "bias_pct": null,
+      "significant": false
+    },
+    {
+      "range": [
+        0.9,
+        0.95
+      ],
+      "midpoint": 0.925,
+      "sample_size": 0,
+      "resolved_yes_rate": null,
+      "ci_95_low": null,
+      "ci_95_high": null,
+      "bias_pct": null,
+      "significant": false
+    },
+    {
+      "range": [
+        0.95,
+        1.0
+      ],
+      "midpoint": 0.975,
+      "sample_size": 2,
+      "resolved_yes_rate": null,
+      "ci_95_low": null,
+      "ci_95_high": null,
+      "bias_pct": null,
+      "significant": false
+    }
+  ]
+}
