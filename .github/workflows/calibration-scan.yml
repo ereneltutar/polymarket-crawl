@@ -1,0 +1,42 @@
+name: Weekly Calibration Scan
+
+on:
+  schedule:
+    # Her Pazartesi 04:00 UTC = 07:00 Turkiye saati. Bu, piyasanin yapisal
+    # bir ozelligini olcuyor - gunluk degismez, o yuzden haftalik yeterli.
+    - cron: "0 4 * * 1"
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  calibrate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60   # CLOB price-history cagrilari market basina yapildigi icin uzun surebilir
+    steps:
+      - name: Repo'yu checkout et
+        uses: actions/checkout@v4
+
+      - name: Python kur
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Bagimliliklari yukle
+        run: pip install requests
+
+      - name: Kalibrasyon taramasini calistir
+        run: python scripts/calibration_scan.py
+
+      - name: Sonuclari commit'le
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add docs/calibration.json
+          if git diff --staged --quiet; then
+            echo "Degisiklik yok, commit atlanıyor."
+          else
+            git commit -m "Weekly calibration: $(date -u +'%Y-%m-%d %H:%M UTC')"
+            git push
+          fi
