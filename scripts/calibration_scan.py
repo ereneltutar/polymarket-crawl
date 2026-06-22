@@ -27,6 +27,16 @@ BILINEN ALTYAPI RISKI:
   yutmuyor — kac market'in basariyla kullanildigini, kacinin
   veri eksikligi yuzunden atlandigini acikca raporluyor.
 
+  AYRICA: Polymarket'in kimliksiz (unauthenticated) API erisimi icin
+  belgelenmis bir oran siniri var (~dakikada 60 istek). Bu script
+  market basina bir CLOB cagrisi yaptigi icin, bu siniri asarsa
+  cogu cagri 429 (Too Many Requests) ile geri doner - bu, gercek bir
+  "veri yok" durumuyla AYNI sekilde basarisizlik gibi gorunur ama
+  kok nedeni tamamen farklidir (yavaslatip tekrar denemek yeterlidir).
+  Bu yuzden fetch_reference_price() 429'u ozel olarak tespit edip
+  backoff ile yeniden deniyor, ve kac basarisizligin rate-limit
+  kaynakli oldugunu ayri sayiyor.
+
 Cikti: docs/calibration.json
 """
 
@@ -50,9 +60,11 @@ MIN_SAMPLE_PER_BUCKET = 30    # bu sayidan az ornegi olan kovaya istatistiksel g
 RESOLUTION_THRESHOLD = 0.98   # outcomePrices bunun ustunde/altinda degilse "net sonuclanmamis" sayip ele
 PAGE_LIMIT = 500
 MAX_PAGES = 40                # guvenlik siniri (closed market taramasi icin)
-MAX_MARKETS_TO_ANALYZE = 3000 # CLOB price-history cagrisi yapilacak max market sayisi (runtime/rate-limit guvenligi)
+MAX_MARKETS_TO_ANALYZE = 2200 # CLOB price-history cagrisi yapilacak max market sayisi (rate-limit guvenligi - asagidaki SLEEP ile carptiginda 60dk timeout'u asmamali)
 REQUEST_TIMEOUT = 20
-SLEEP_BETWEEN_CALLS = 0.3
+SLEEP_BETWEEN_CALLS = 1.15    # ~52 istek/dk - Polymarket'in ~60/dk siniri altinda guvenli pay birakir
+MAX_RETRIES_ON_429 = 2        # rate-limit hatasinda kac kere tekrar denensin
+BACKOFF_SECONDS_ON_429 = 8    # her 429'da bu kadar bekleyip tekrar dene
 # ----------------------------------------------------------------------------
 
 OUTPUT_PATH = Path(__file__).resolve().parent.parent / "docs" / "calibration.json"
@@ -95,8 +107,14 @@ def qualifies(market: dict) -> bool:
     if not start or not end:
         return False
     duration_days = (end - start).total_seconds() / 86400
-    if duration_days < MIN_DURATION_DAYS:
-        return False  # cok kisa sureli market (orn. 15dk crypto up/down) - farkli bir oyun, ele
+
+    # KRITIK: target_ts = end - LEAD_DAYS. Market'in suresi LEAD_DAYS'tan kisaysa,
+    # target_ts market'in baslangicindan ONCEYE denk gelir ve fetch_reference_price()
+    # garanti basarisiz olur (history'de o tarihten once hic veri yoktur). Bu yuzden
+    # MIN_DURATION_DAYS yerine dogrudan LEAD_DAYS + kucuk bir tampon kullaniyoruz.
+    min_required_duration = max(MIN_DURATION_DAYS, LEAD_DAYS + 1)
+    if duration_days < min_required_duration:
+        return False  # cok kisa sureli market (orn. 15dk crypto up/down, ya da LEAD_DAYS'tan kisa yasamis)
 
     raw_prices = market.get("outcomePrices")
     if not raw_prices:
@@ -126,30 +144,49 @@ def qualifies(market: dict) -> bool:
 
 def fetch_reference_price(yes_token_id: str, target_ts: int):
     """CLOB /prices-history'den, target_ts'den ONCEKI en yakin fiyati ceker.
-    Bilinen endpoint guvenilmezligi nedeniyle basarisizlikta None doner (exception fırlatmaz)."""
-    try:
-        resp = requests.get(
-            f"{CLOB_BASE}/prices-history",
-            params={"market": yes_token_id, "interval": "max", "fidelity": 720},  # 720 dk = 12 saat
-            timeout=REQUEST_TIMEOUT,
-        )
-        resp.raise_for_status()
-        history = resp.json().get("history") or []
-    except (requests.RequestException, ValueError):
-        return None
+
+    Basarisizlikta (price=None, reason) doner - reason, ust seviyede HANGI
+    turde basarisizlik oldugunu ayirt edebilmemiz icin var (rate_limited /
+    empty_history / no_candidate / request_error). Bu ayrim onemli: 429
+    (rate limit) "veri yok" ile AYNI sonucu (None) verir ama kok nedeni
+    tamamen farklidir ve farkli bir cozumu gerektirir."""
+    attempt = 0
+    while True:
+        try:
+            resp = requests.get(
+                f"{CLOB_BASE}/prices-history",
+                params={"market": yes_token_id, "interval": "max", "fidelity": 720},  # 720 dk = 12 saat
+                timeout=REQUEST_TIMEOUT,
+            )
+        except requests.RequestException:
+            return None, "request_error"
+
+        if resp.status_code == 429:
+            if attempt >= MAX_RETRIES_ON_429:
+                return None, "rate_limited"
+            attempt += 1
+            time.sleep(BACKOFF_SECONDS_ON_429 * attempt)
+            continue
+
+        try:
+            resp.raise_for_status()
+            history = resp.json().get("history") or []
+        except (requests.RequestException, ValueError):
+            return None, "request_error"
+        break
 
     if not history:
-        return None
+        return None, "empty_history"
 
     # target_ts'den ONCEKI (lookahead-leak yapmayan) en yakin noktayi bul
     candidates = [pt for pt in history if pt.get("t") is not None and pt["t"] <= target_ts]
     if not candidates:
-        return None
+        return None, "no_candidate"
     closest = max(candidates, key=lambda pt: pt["t"])
     try:
-        return float(closest["p"])
+        return float(closest["p"]), None
     except (TypeError, ValueError, KeyError):
-        return None
+        return None, "request_error"
 
 
 def wilson_interval(k: int, n: int, z: float = 1.96):
@@ -178,7 +215,7 @@ def main():
         print(f"Runtime guvenligi icin {MAX_MARKETS_TO_ANALYZE} market ile sinirlandi.")
 
     samples = []          # her biri: {reference_price, resolved_yes}
-    history_failures = 0
+    failure_reasons = {"rate_limited": 0, "empty_history": 0, "no_candidate": 0, "request_error": 0}
 
     for i, market in enumerate(qualifying):
         end = parse_iso(market.get("endDate"))
@@ -186,11 +223,11 @@ def main():
         yes_token_id = tokens[0]
         target_ts = int((end - datetime.timedelta(days=LEAD_DAYS)).timestamp())
 
-        ref_price = fetch_reference_price(yes_token_id, target_ts)
+        ref_price, reason = fetch_reference_price(yes_token_id, target_ts)
         time.sleep(SLEEP_BETWEEN_CALLS)
 
         if ref_price is None:
-            history_failures += 1
+            failure_reasons[reason] = failure_reasons.get(reason, 0) + 1
             continue
 
         raw_prices = market["outcomePrices"]
@@ -200,10 +237,15 @@ def main():
         samples.append({"reference_price": ref_price, "resolved_yes": resolved_yes})
 
         if (i + 1) % 200 == 0:
-            print(f"  ... {i + 1}/{len(qualifying)} islendi ({history_failures} basarisiz)")
+            done_failures = sum(failure_reasons.values())
+            print(f"  ... {i + 1}/{len(qualifying)} islendi ({len(samples)} basarili, {done_failures} basarisiz)")
 
+    history_failures = sum(failure_reasons.values())
     print(f"Toplam {len(samples)} market icin gecmis fiyat basariyla cekildi.")
-    print(f"{history_failures} market /prices-history veri eksikligi yuzunden atlandi.")
+    print(f"{history_failures} market basarisiz oldu - detay: {failure_reasons}")
+    if failure_reasons["rate_limited"] > history_failures * 0.2:
+        print("UYARI: basarisizliklarin onemli bir kismi rate-limit (429) kaynakli. "
+              "SLEEP_BETWEEN_CALLS'i artirmayi veya MAX_RETRIES_ON_429'u yukseltmeyi dusun.", file=sys.stderr)
 
     # --- Kovalama ve istatistik ---
     num_bins = int(round(1 / BIN_WIDTH))
@@ -256,6 +298,7 @@ def main():
         "markets_qualifying": len(qualifying),
         "markets_with_history": len(samples),
         "history_fetch_failures": history_failures,
+        "failure_breakdown": failure_reasons,
         "bins": bins,
     }
 
