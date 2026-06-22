@@ -1,13 +1,19 @@
 {
-  "generated_at": "2026-06-21T18:39:22.899361+00:00",
+  "generated_at": "2026-06-22T06:54:42.306622+00:00",
   "lead_days": 7,
   "min_duration_days": 3,
   "bin_width": 0.05,
   "min_sample_per_bucket": 30,
   "closed_markets_scanned": 2100,
-  "markets_qualifying": 500,
+  "markets_qualifying": 379,
   "markets_with_history": 7,
-  "history_fetch_failures": 493,
+  "history_fetch_failures": 372,
+  "failure_breakdown": {
+    "rate_limited": 0,
+    "empty_history": 372,
+    "no_candidate": 0,
+    "request_error": 0
+  },
   "bins": [
     {
       "range": [
