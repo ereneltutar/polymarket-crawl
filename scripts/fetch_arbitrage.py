@@ -21,10 +21,11 @@ ve iki ayri mantikla firsat arar:
    tasidigi icin v1'de bilerek disarida tutuldu).
 
 2) KALIBRASYON SAPMASI (istatistiksel, RISKSIZ DEGIL):
-   scripts/calibration_scan.py (haftalik, ayri bir is) Polymarket'in
-   GECMIS kapanmis market'lerini tarayip "piyasa fiyati" ile "gercekte
+   scripts/calibration_scan.py (haftalik, ayri bir is) bu script'in
+   asagida yazdigi docs/price_log.jsonl'i okuyup, o markette zamani gelip
+   kapananlari gercek sonucuyla eslestirir; "piyasa fiyati" ile "gercekte
    gerceklesen oran" arasinda sistematik bir sapma (favorite-longshot
-   bias) olup olmadigini olcer ve docs/calibration.json'a yazar.
+   bias) olup olmadigini olcup docs/calibration.json'a yazar.
    Bu script o tabloyu okuyup BUGUNUN acik market'lerini bu tabloyla
    karsilastirir: fiyati, gecmiste istatistiksel olarak anlamli sapma
    gosterilmis bir araliga denk gelen market'leri "calibration_signals"
@@ -32,7 +33,20 @@ ve iki ayri mantikla firsat arar:
    cok sayida tekrarlanan pozisyonda beklenen degeri (+EV) lehine ceken
    istatistiksel bir egilimdir.
 
+   ONEMLI - NEDEN GECMISE BAKMIYORUZ: Polymarket'in /prices-history
+   endpoint'i canli testte (379 market, 372 basarisiz) market'lerin
+   %98'i icin bos veri dondu - bu, Polymarket'in kendi altyapisinin
+   bilinen bir sinirlamasi (bagimsiz bir ucuncu taraf veri servisinin
+   var olma sebebi de bu). Bu yuzden GECMISE bakmak yerine ILERIYE
+   bakiyoruz: asagidaki log_price_snapshot() fonksiyonu, kapanisina
+   yaklasik CALIBRATION_LOG_LEAD_DAYS gun kalan her market'in su anki
+   fiyatini docs/price_log.jsonl'e ekliyor (append-only). Haftalar
+   sonra bu market'ler kapaninca, calibration_scan.py kendi logladigimiz
+   bu fiyati gercek sonucla eslestirip kullanabiliyor - Polymarket'in
+   guvenilmez gecmis-veri endpoint'ine hic ihtiyac kalmiyor.
+
 Cikti: docs/results.json (statik dashboard bu dosyayi okuyor)
+       docs/price_log.jsonl (ileriye-donuk kalibrasyon arsivi, append-only)
 """
 
 import datetime
@@ -63,10 +77,19 @@ MAX_MOMENTUM_SIGNALS = 15         # dashboard'da gosterilecek max sinyal sayisi
 MIN_CALIBRATION_EDGE_PCT = 2.0    # bu yuzdenin altindaki kalibrasyon farkini gosterme (gurultu)
 MIN_CALIBRATION_LIQUIDITY_USD = 100  # bu likiditenin altindaki market'leri ele
 MAX_CALIBRATION_SIGNALS = 20      # dashboard'da gosterilecek max sinyal sayisi
+
+# Ileriye-donuk kalibrasyon LOGLAMA icin (calibration_scan.py'nin okuyacagi arsiv):
+# UYARI: CALIBRATION_LOG_LEAD_DAYS, scripts/calibration_scan.py'deki LEAD_DAYS ile
+# AYNI mantigi temsil eder (ikisi de "kapanistan kac gun once" sorusu) - birini
+# degistirirsen digerini de gozden gecir, aralarinda kod baginda paylasim yok.
+CALIBRATION_LOG_LEAD_DAYS = 7
+CALIBRATION_LOG_TOLERANCE_DAYS = 0.6  # her gun calisan cron'un bu pencereyi kacirmamasi icin pay
+CALIBRATION_LOG_MIN_LIQUIDITY = 50
 # ----------------------------------------------------------------------------
 
 OUTPUT_PATH = Path(__file__).resolve().parent.parent / "docs" / "results.json"
 CALIBRATION_PATH = Path(__file__).resolve().parent.parent / "docs" / "calibration.json"
+PRICE_LOG_PATH = Path(__file__).resolve().parent.parent / "docs" / "price_log.jsonl"
 
 
 def fetch_all_events() -> list:
@@ -241,6 +264,69 @@ def find_calibration_signal(market: dict, event: dict, bins: list, now: datetime
     }
 
 
+def log_price_snapshot(events: list, now: datetime.datetime) -> int:
+    """Kapanisina yaklasik CALIBRATION_LOG_LEAD_DAYS gun kalan her market'in
+    su anki fiyatini docs/price_log.jsonl'e ekler (append-only, asla mevcut
+    satirlari degistirmez/silmez). calibration_scan.py haftalar sonra bu
+    market'ler kapaninca, burada loglanan fiyati gercek sonucla eslestirip
+    kullanir. Ayni market'i iki kere loglamamak icin once dosyadaki mevcut
+    market_id'leri okur. Basariyla eklenen yeni satir sayisini doner."""
+    existing_ids = set()
+    if PRICE_LOG_PATH.exists():
+        with PRICE_LOG_PATH.open("r", encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    existing_ids.add(json.loads(line)["market_id"])
+                except (json.JSONDecodeError, KeyError):
+                    continue
+
+    new_entries = []
+    for event in events:
+        end_date = parse_iso(event.get("endDate"))
+        if not end_date:
+            continue
+        days_until_close = (end_date - now).total_seconds() / 86400
+        lo = CALIBRATION_LOG_LEAD_DAYS - CALIBRATION_LOG_TOLERANCE_DAYS
+        hi = CALIBRATION_LOG_LEAD_DAYS + CALIBRATION_LOG_TOLERANCE_DAYS
+        if not (lo <= days_until_close <= hi):
+            continue
+
+        for market in (event.get("markets") or []):
+            market_id = market.get("id")
+            if not market_id or market_id in existing_ids:
+                continue
+            try:
+                price = float(market.get("lastTradePrice") or market.get("bestAsk") or 0)
+            except (TypeError, ValueError):
+                continue
+            if price <= 0 or price >= 1:
+                continue
+            liquidity = float(market.get("liquidityNum") or 0)
+            if liquidity < CALIBRATION_LOG_MIN_LIQUIDITY:
+                continue
+
+            new_entries.append({
+                "market_id": market_id,
+                "question": market.get("question") or event.get("title") or "?",
+                "slug": event.get("slug"),
+                "logged_at": now.isoformat(),
+                "end_date": event.get("endDate"),
+                "price": round(price, 4),
+                "liquidity": round(liquidity, 2),
+            })
+            existing_ids.add(market_id)
+
+    if new_entries:
+        with PRICE_LOG_PATH.open("a", encoding="utf-8") as f:
+            for entry in new_entries:
+                f.write(json.dumps(entry, ensure_ascii=False) + "\n")
+
+    return len(new_entries)
+
+
 def main():
     now = datetime.datetime.now(datetime.timezone.utc)
     cutoff = now + datetime.timedelta(days=DAYS_AHEAD)
@@ -276,6 +362,8 @@ def main():
     calibration_signals.sort(key=lambda s: s["edge_pct"], reverse=True)
     calibration_signals = calibration_signals[:MAX_CALIBRATION_SIGNALS]
 
+    new_log_entries = log_price_snapshot(events, now)
+
     output = {
         "generated_at": now.isoformat(),
         "days_ahead_filter": DAYS_AHEAD,
@@ -290,6 +378,8 @@ def main():
     OUTPUT_PATH.write_text(json.dumps(output, indent=2, ensure_ascii=False), encoding="utf-8")
     print(f"{len(events)} event tarandi, {len(opportunities)} arbitraj firsati, "
           f"{len(calibration_signals)} kalibrasyon sinyali bulundu -> {OUTPUT_PATH}")
+    print(f"{new_log_entries} yeni market price_log.jsonl'e eklendi "
+          f"(kalibrasyon arsivi icin ileriye-donuk loglama).")
     if not calibration:
         print("Not: docs/calibration.json henuz yok - 'Weekly Calibration Scan' workflow'u "
               "en az bir kez calismadan kalibrasyon sinyalleri uretilemez.", file=sys.stderr)
