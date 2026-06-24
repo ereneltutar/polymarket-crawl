@@ -100,6 +100,14 @@ def fetch_all_events() -> list:
     Bu yuzden "bos sayfa gelene kadar devam et, offset'i gercek alinan
     miktar kadar ilerlet" mantigini kullaniyoruz; "alinan miktar < istenen
     limit" durumunu "veri bitti" sanmiyoruz.
+
+    Ayrica: Gamma API /events endpoint'i belirli bir offset'in (canli
+    testte ~2100) USTUNDE 422 (Unprocessable Entity) ile reddediyor -
+    yani orgutu bir sayfalama tavani var. Bu hata ESKIDEN fonksiyonun
+    disina sizip o ana kadar BIRIKEN TUM event'leri kaybettiriyordu
+    (main() bos liste ile devam ediyordu). Simdi bu hata, sadece
+    sayfalamayi DURDURUYOR - o ana kadar basariyla toplanan event'ler
+    kaybedilmeden donuyor.
     """
     events = []
     offset = 0
@@ -110,9 +118,14 @@ def fetch_all_events() -> list:
             "limit": PAGE_LIMIT,
             "offset": offset,
         }
-        resp = requests.get(f"{GAMMA_BASE}/events", params=params, timeout=REQUEST_TIMEOUT)
-        resp.raise_for_status()
-        batch = resp.json()
+        try:
+            resp = requests.get(f"{GAMMA_BASE}/events", params=params, timeout=REQUEST_TIMEOUT)
+            resp.raise_for_status()
+            batch = resp.json()
+        except requests.RequestException as exc:
+            print(f"Sayfalama offset={offset}'te durdu (API hatasi: {exc}). "
+                  f"O ana kadar toplanan {len(events)} event kullanilacak.", file=sys.stderr)
+            break
         if not isinstance(batch, list) or not batch:
             break
         events.extend(batch)
