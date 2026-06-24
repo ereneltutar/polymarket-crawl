@@ -1,9 +1,9 @@
 {
-  "generated_at": "2026-06-24T06:36:02.655460+00:00",
+  "generated_at": "2026-06-24T08:25:29.344400+00:00",
   "days_ahead_filter": 30,
   "min_edge_pct_filter": 0.5,
-  "scanned_events": 0,
+  "scanned_events": 2100,
   "opportunities": [],
   "calibration_signals": [],
-  "calibration_table_generated_at": "2026-06-22T09:52:24.716484+00:00"
+  "calibration_table_generated_at": "2026-06-24T08:23:02.967310+00:00"
 }
