@@ -1,19 +1,11 @@
 {
-  "generated_at": "2026-06-22T09:52:24.716484+00:00",
-  "lead_days": 7,
-  "min_duration_days": 3,
+  "generated_at": "2026-06-24T08:23:02.967310+00:00",
   "bin_width": 0.05,
   "min_sample_per_bucket": 30,
-  "closed_markets_scanned": 2100,
-  "markets_qualifying": 379,
-  "markets_with_history": 7,
-  "history_fetch_failures": 372,
-  "failure_breakdown": {
-    "rate_limited": 0,
-    "empty_history": 372,
-    "no_candidate": 0,
-    "request_error": 0
-  },
+  "logged_markets_total": 0,
+  "logged_markets_checked": 0,
+  "markets_resolved": 0,
+  "markets_still_open_or_unclear": 0,
   "bins": [
     {
       "range": [
@@ -21,7 +13,7 @@
         0.05
       ],
       "midpoint": 0.025,
-      "sample_size": 5,
+      "sample_size": 0,
       "resolved_yes_rate": null,
       "ci_95_low": null,
       "ci_95_high": null,
@@ -268,7 +260,7 @@
         1.0
       ],
       "midpoint": 0.975,
-      "sample_size": 2,
+      "sample_size": 0,
       "resolved_yes_rate": null,
       "ci_95_low": null,
       "ci_95_high": null,
