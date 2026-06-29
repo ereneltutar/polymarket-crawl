@@ -1,9 +1,38 @@
 {
-  "generated_at": "2026-06-28T06:53:28.264727+00:00",
+  "generated_at": "2026-06-29T07:21:09.586883+00:00",
   "days_ahead_filter": 30,
   "min_edge_pct_filter": 0.5,
   "scanned_events": 2100,
-  "opportunities": [],
+  "opportunities": [
+    {
+      "event_title": "Bank of Korea decision in July?",
+      "slug": "bank-of-korea-decision-in-july",
+      "url": "https://polymarket.com/event/bank-of-korea-decision-in-july",
+      "end_date": "2026-07-16T00:00:00Z",
+      "days_left": 16,
+      "num_outcomes": 3,
+      "total_cost": 0.991,
+      "edge_pct": 0.91,
+      "min_outcome_liquidity": 11164.7,
+      "legs": [
+        {
+          "outcome": "Decrease",
+          "ask": 0.001,
+          "liquidity": 13927.71
+        },
+        {
+          "outcome": "No Change",
+          "ask": 0.09,
+          "liquidity": 14174.44
+        },
+        {
+          "outcome": "Increase",
+          "ask": 0.9,
+          "liquidity": 11164.7
+        }
+      ]
+    }
+  ],
   "calibration_signals": [],
   "calibration_table_generated_at": "2026-06-24T08:23:02.967310+00:00"
 }
