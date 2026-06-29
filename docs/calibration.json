@@ -1,11 +1,11 @@
 {
-  "generated_at": "2026-06-24T08:23:02.967310+00:00",
+  "generated_at": "2026-06-29T09:03:44.844561+00:00",
   "bin_width": 0.05,
   "min_sample_per_bucket": 30,
-  "logged_markets_total": 0,
-  "logged_markets_checked": 0,
-  "markets_resolved": 0,
-  "markets_still_open_or_unclear": 0,
+  "logged_markets_total": 67,
+  "logged_markets_checked": 67,
+  "markets_resolved": 1,
+  "markets_still_open_or_unclear": 66,
   "bins": [
     {
       "range": [
@@ -130,7 +130,7 @@
         0.5
       ],
       "midpoint": 0.475,
-      "sample_size": 0,
+      "sample_size": 1,
       "resolved_yes_rate": null,
       "ci_95_low": null,
       "ci_95_high": null,
