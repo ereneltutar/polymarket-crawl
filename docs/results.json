@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-01T07:03:43.178216+00:00",
+  "generated_at": "2026-07-02T06:29:33.210963+00:00",
   "days_ahead_filter": 30,
   "min_edge_pct_filter": 0.5,
   "scanned_events": 2100,
@@ -9,26 +9,26 @@
       "slug": "bank-of-russia-decision-in-july",
       "url": "https://polymarket.com/event/bank-of-russia-decision-in-july",
       "end_date": "2026-07-24T00:00:00Z",
-      "days_left": 22,
+      "days_left": 21,
       "num_outcomes": 3,
-      "total_cost": 0.989,
-      "edge_pct": 1.11,
-      "min_outcome_liquidity": 9559.38,
+      "total_cost": 0.994,
+      "edge_pct": 0.6,
+      "min_outcome_liquidity": 6686.16,
       "legs": [
         {
           "outcome": "Increase",
-          "ask": 0.019,
-          "liquidity": 23689.5
+          "ask": 0.014,
+          "liquidity": 21786.35
         },
         {
           "outcome": "No Change",
           "ask": 0.44,
-          "liquidity": 9734.57
+          "liquidity": 7718.34
         },
         {
           "outcome": "Decrease",
-          "ask": 0.53,
-          "liquidity": 9559.38
+          "ask": 0.54,
+          "liquidity": 6686.16
         }
       ]
     }
